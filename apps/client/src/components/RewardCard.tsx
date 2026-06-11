@@ -35,10 +35,11 @@ export default function RewardCard({
   onDismiss,
 }: Props) {
   const translateY = useRef(new Animated.Value(CARD_HEIGHT + 80)).current;
+  const hasBeenVisible = useRef(false);
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (visible) {
+    if (visible) { hasBeenVisible.current = true;
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: 0,
@@ -71,7 +72,7 @@ export default function RewardCard({
     }
   }, [visible]);
 
-  if (!visible && opacity._value === 0) return null;
+  if (!visible && !hasBeenVisible.current) return null;
 
   return (
     <Animated.View

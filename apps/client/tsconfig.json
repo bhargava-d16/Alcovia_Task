@@ -8,7 +8,7 @@
     ],
     "allowJs": true,
     "noEmit": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "paths": {
       "@alcovia/sync-engine": [
         "../../packages/sync-engine/src/index.ts"

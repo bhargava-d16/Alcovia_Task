@@ -51,7 +51,7 @@ export const Typography = {
   body: { fontSize: 15, fontWeight: '400' as const, color: Colors.textPrimary },
   bodySmall: { fontSize: 13, fontWeight: '400' as const, color: Colors.textSecondary },
   label: { fontSize: 11, fontWeight: '600' as const, letterSpacing: 0.8 },
-  timer: { fontSize: 56, fontWeight: '600' as const, fontVariant: ['tabular-nums'] as const },
+  timer: { fontSize: 56, fontWeight: '600' as const, fontVariant: ['tabular-nums'] as ('tabular-nums')[] },
   coin: { fontSize: 20, fontWeight: '600' as const, color: Colors.accent },
 };
 

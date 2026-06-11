@@ -1,0 +1,261 @@
+{
+  "name": "Alcovia Session Success Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alcovia-session-success",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "n1-webhook",
+      "name": "Webhook — Session Success",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "alcovia-session-success"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/processed_notifications?session_id=eq.{{$json.body.session_id}}&select=session_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_ANON_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "n2-check-dedup",
+      "name": "Check — Already Notified?",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{$json.length}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "n3-if-new",
+      "name": "IF — New Session?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/rest/v1/processed_notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{$('Webhook — Session Success').item.json.body.session_id}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.SUPABASE_ANON_KEY}}"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=ignore-duplicates"
+            }
+          ]
+        }
+      },
+      "id": "n4-insert-dedup",
+      "name": "Insert — Mark Notified (ON CONFLICT IGNORE)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_WHATSAPP_FROM}}",
+        "to": "={{$env.TWILIO_WHATSAPP_TO}}",
+        "message": "=🔥 Great focus session, {{$('Webhook — Session Success').item.json.body.student_id}}!\n\nStreak: {{$('Webhook — Session Success').item.json.body.streak_days}} days 🔥\nYou earned {{$('Webhook — Session Success').item.json.body.coins_awarded}} coins 🪙\nTotal coins: {{$('Webhook — Session Success').item.json.body.total_coins}} 🪙\n\nKeep it up! 💪"
+      },
+      "id": "n5-twilio",
+      "name": "Twilio — Send WhatsApp",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1120, 200],
+      "credentials": {
+        "twilioApi": {
+          "id": "twilio-cred",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:4000/api/v1/webhooks/n8n-log",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{$('Webhook — Session Success').item.json.body.session_id}}"
+            },
+            {
+              "name": "skipped",
+              "value": false
+            },
+            {
+              "name": "message",
+              "value": "n8n webhook fired — WhatsApp sent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n6-log-fired",
+      "name": "Log — Fired (Dev Panel)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://localhost:4000/api/v1/webhooks/n8n-log",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sessionId",
+              "value": "={{$('Webhook — Session Success').item.json.body.session_id}}"
+            },
+            {
+              "name": "skipped",
+              "value": true
+            },
+            {
+              "name": "message",
+              "value": "Skipped — already notified"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n7-log-skipped",
+      "name": "Log — Skipped (Dev Panel)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "n8-respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    }
+  ],
+  "connections": {
+    "Webhook — Session Success": {
+      "main": [
+        [{ "node": "Check — Already Notified?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Check — Already Notified?": {
+      "main": [
+        [{ "node": "IF — New Session?", "type": "main", "index": 0 }]
+      ]
+    },
+    "IF — New Session?": {
+      "main": [
+        [{ "node": "Insert — Mark Notified (ON CONFLICT IGNORE)", "type": "main", "index": 0 }],
+        [{ "node": "Log — Skipped (Dev Panel)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Insert — Mark Notified (ON CONFLICT IGNORE)": {
+      "main": [
+        [{ "node": "Twilio — Send WhatsApp", "type": "main", "index": 0 }]
+      ]
+    },
+    "Twilio — Send WhatsApp": {
+      "main": [
+        [{ "node": "Log — Fired (Dev Panel)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log — Fired (Dev Panel)": {
+      "main": [
+        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log — Skipped (Dev Panel)": {
+      "main": [
+        [{ "node": "Respond to Webhook", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "pinData": {},
+  "versionId": "alcovia-v1",
+  "triggerCount": 0,
+  "tags": [{ "name": "alcovia", "createdAt": "2026-06-10T00:00:00.000Z" }],
+  "_SETUP_NOTES": {
+    "step1": "Import this file in n8n Cloud → Workflows → Import",
+    "step2": "Set SUPABASE_URL and SUPABASE_ANON_KEY as n8n environment variables",
+    "step3": "Create a Twilio credential in n8n with your Account SID and Auth Token",
+    "step4": "Activate the workflow — copy the webhook URL to N8N_WEBHOOK_URL in apps/server/.env",
+    "step5": "Update the Log nodes' URL from localhost:4000 to your deployed server URL if deployed"
+  }
+}

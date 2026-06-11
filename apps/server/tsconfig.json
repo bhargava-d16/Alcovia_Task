@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "commonjs",
+    "lib": ["ES2020", "DOM"],
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@alcovia/sync-engine": ["../../packages/sync-engine/src/index.ts"],
+      "@alcovia/sync-engine/*": ["../../packages/sync-engine/src/*"]
+    }
+  },
+  "include": ["src", "../../packages/sync-engine/src"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}

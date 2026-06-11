@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Alcovia",
+    "slug": "alcovia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1A56DB"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "scheme": "alcovia"
+  }
+}

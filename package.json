@@ -1,0 +1,21 @@
+{
+  "name": "alcovia",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=apps/server\" \"npm run web --workspace=apps/client\"",
+    "seed": "npm run seed --workspace=apps/server",
+    "build": "npm run build --workspace=packages/sync-engine && npm run build --workspace=apps/server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
